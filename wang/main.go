@@ -11,9 +11,7 @@ import (
 )
 
 const MAX_N = 1000
-const ThreadCount = 10
-const MaxUint = ^uint(0) 
-const MaxInt = int(MaxUint >> 1) 
+const ThreadCount = 5
 
 type resultItem struct {
 	data []int   // data
@@ -62,19 +60,19 @@ func main() {
 	start := time.Now()
 
 	// Base
-	base := data[0]
+	base := data[98]
 
 	// Start compute
 	var ch = make(chan resultItem, ThreadCount * 5)
 
-	startIndex := 1
+	startIndex := 0
 	for i := 0; i < ThreadCount; i++ {
 		endIndex := startIndex + len(data) / ThreadCount - 1
 		if endIndex > len(data) {
 			endIndex = len(data)
 		}
 		//fmt.Println(startIndex, endIndex)
-		go computePart(data, base, startIndex, endIndex, ch)
+		go computePart(data[:], base[:], startIndex, endIndex, ch)
 		startIndex = endIndex + 1
 	}
 	
@@ -94,6 +92,7 @@ func main() {
 	}
 
 	// Output
+	fmt.Println("")
 	fmt.Println("----------------------------------------")
 	for i := 0; i < len(results); i++ {
 		fmt.Printf("%d\n",  results[i].value)
