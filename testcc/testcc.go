@@ -12,13 +12,14 @@ type TestChainCode struct {
 }
 
 func (t *TestChainCode) Init(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("GP Test ChainCode Init")
+	fmt.Println("GPTestChainCode: Init")
 	return shim.Success(nil)
 }
 
 func (t *TestChainCode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("GP Test ChainCode Invoke")
 	function, args := stub.GetFunctionAndParameters()
+	fmt.Println("GPTestChainCode: Invoke: %s", function)
+
 	if function == "set" {
 		return t.set(stub, args)
 	} else if function == "delete" {
@@ -27,7 +28,7 @@ func (t *TestChainCode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return t.query(stub, args)
 	}
 
-	return shim.Error("Invalid invoke function name. Expecting \"invoke\" \"delete\" \"query\"")
+	return shim.Error(fmt.Sprintf("Invalid invoke function name: %s", function))
 }
 
 func (t *TestChainCode) set(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -36,15 +37,20 @@ func (t *TestChainCode) set(stub shim.ChaincodeStubInterface, args []string) pb.
 	var err error
 
 	if len(args) != 2 {
-		return shim.Error("Incorrect number of arguments. Expecting 2")
+		return shim.Error("Wrong arguments")
 	}
+	fmt.Println("SET: %s, %s", args[0], args[1])
 
+	// Get Key
 	key = args[0]
+
+	// Get Value
 	val, err = strconv.Atoi(args[1])
 	if err != nil {
 		return shim.Error("Failed to get value: " + err.Error())
 	}
 
+	// Save Key-Value
 	err = stub.PutState(key, []byte(strconv.Itoa(val)))
 	if err != nil {
 		return shim.Error("Failed to put value to ledger: " + err.Error())
@@ -70,23 +76,24 @@ func (t *TestChainCode) delete(stub shim.ChaincodeStubInterface, args []string) 
 }
 
 func (t *TestChainCode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var A string // Entities
+	var key string
 	var err error
 
 	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting name of the person to query")
+		return shim.Error("Wrong arguments")
 	}
+	fmt.Println("QUERY: %s", args[0])
 
-	A = args[0]
+	key = args[0]
 
 	// Get the state from the ledger
-	Avalbytes, err := stub.GetState(A)
+	Avalbytes, err := stub.GetState(key)
 	if err != nil {
 		return shim.Error("Failed to get state from ledger")
 	}
 
 	resp := "" + string(Avalbytes)
-	fmt.Printf("Query Response:%s\n", resp)
+	fmt.Printf("QUERY Response:%s\n", resp)
 	return shim.Success(Avalbytes)
 }
 
